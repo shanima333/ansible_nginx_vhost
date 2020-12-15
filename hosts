@@ -1,0 +1,2 @@
+[ubuntu]
+172.31.9.72 ansible_user="ubuntu" ansible_ssh_private_key_file="ohio.pem"

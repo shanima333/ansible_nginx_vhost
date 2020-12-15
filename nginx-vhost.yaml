@@ -1,0 +1,53 @@
+---
+ 
+  - name: "Configure Nginx& Php and host a website"
+    hosts: all
+    become: true
+    vars:
+      nginx_port: 80
+      nginx_website: www.shani.com
+    tasks:
+    
+      - name: "Upgrade all apt packages"
+        apt: update_cache=yes force_apt_get=yes cache_valid_time=3600
+        
+      - name: "Install Nginx and PHP"
+        yum:
+          name:
+            - nginx
+            - php
+            - php-fpm
+          state: present
+
+      - name: "Create website configuration file"
+        template:
+          src: vhost_temp.tmpl
+          dest: "/etc/nginx/sites-available/{{ nginx_website }}"
+
+      - name: "create soft link for the website"
+        file:
+          src: "/etc/nginx/sites-available/{{ nginx_website }}"
+          dest: "/etc/nginx/sites-enabled/{{ nginx_website }}"
+          state: link
+
+
+      - name: "Create website folder"
+        file:
+          path: "/var/www/html/{{ nginx_website }}"
+          state: directory
+
+      - name: "Upload website contents"
+        copy:
+          src: website/
+          dest: "/var/www/html/{{ nginx_website }}"
+
+
+      - name: "Unlink the default configuration file"
+        file:
+          path: /etc/nginx/sites-enabled/default 
+          state: absent
+
+      - name: "Restart nginx service" 
+        service:
+          name: nginx
+          state: restarted
